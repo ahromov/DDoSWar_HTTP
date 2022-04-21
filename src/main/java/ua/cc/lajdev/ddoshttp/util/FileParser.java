@@ -15,6 +15,9 @@ public class FileParser {
             while (reader.hasNextLine()) {
                 String line = reader.nextLine();
                 if (line.startsWith("http")) {
+                    if (line.endsWith("/")) {
+                        line = line.substring(0, line.length() - 1);
+                    }
                     hostNames.add(line);
                 }
             }

