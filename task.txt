@@ -1,0 +1,22 @@
+
+https://nfo-report.1c.ru
+185.12.155.115 (80/tcp, 443/tcp)
+http://downloads.1c.ru
+185.12.155.210 (80/tcp, 443/tcp)
+https://v8.1c.ru
+185.169.155.230 (80/tcp, 443/tcp)
+https://downloads.v8.1c.ru
+185.12.155.124 (80/tcp, 443/tcp)
+https://login.1c.ru/login
+185.12.155.29 (80/tcp, 443/tcp)
+https://reputils.1c.ru
+185.12.155.21 (443/tcp)
+http://regservice.1c.ru/regservice/regservice.asmx?WSDL
+http://regservice.1c.ru/regservice/regservice.asmx
+185.12.152.27 (80/tcp, 443/tcp)
+https://torg.1c.ru/equipment/onlayn-kassy/?utm_source=its&utm_medium=tmenu
+185.12.155.12 (80/tcp, 443/tcp)
+http://online.1c.ru/catalog/products
+185.169.155.229 (80/tcp, 443/tcp)
+https://its.1c.ru
+185.12.155.120 (80/tcp, 443/tcp)
